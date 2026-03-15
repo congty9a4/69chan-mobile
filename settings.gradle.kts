@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "69chan"
+rootProject.name = "chan"
 include(":app")
  
