@@ -6,6 +6,7 @@ import com.mycom.chan.data.remote.dto.request.RefreshRequest
 import com.mycom.chan.data.remote.dto.request.RegisterRequest
 import com.mycom.chan.data.remote.dto.response.AuthResponse
 import com.mycom.chan.data.remote.dto.response.BaseResponse
+import com.mycom.chan.data.remote.dto.response.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -18,7 +19,7 @@ interface AuthAPI {
     suspend fun login(@Body request: LoginRequest) : Response<BaseResponse<AuthResponse>>
     
     @POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest) : Response<BaseResponse<AuthResponse>>
+    suspend fun register(@Body request: RegisterRequest) : Response<BaseResponse<RegisterResponse>>
     
     @POST("auth/refresh-token")
     suspend fun refreshToken(@Body request: RefreshRequest) : Response<BaseResponse<AuthResponse>>

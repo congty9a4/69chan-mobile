@@ -61,7 +61,7 @@ fun AppNav(
             Register(
                 onRegisterSuccess = {
                     // Có thể chuyển thẳng đến Feed hoặc về Login
-                    navController.navigate(Screen.Feed.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
