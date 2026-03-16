@@ -63,14 +63,17 @@ class LoginViewModel @Inject constructor(
 
         if(currentState.email.isBlank()) {
             sendEvent(LoginEvent.ShowError("Email is required."))
+            return
         }
 
         if(!isValidEmail(currentState.email)) {
             sendEvent(LoginEvent.ShowError("Email is invalid"))
+            return
         }
 
         if (currentState.password.isBlank()) {
             sendEvent(LoginEvent.ShowError("Password is required."))
+            return
         }
 
         if (currentState.password.length < 6) {

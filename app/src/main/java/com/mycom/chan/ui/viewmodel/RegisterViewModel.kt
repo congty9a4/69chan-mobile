@@ -18,6 +18,7 @@ data class RegisterState(
     val username: String = "",
     val email: String = "",
     val password: String = "",
+    val confirmPassword: String ="",
     val isLoading: Boolean = false,
 )
 
@@ -48,6 +49,10 @@ class RegisterViewModel @Inject constructor(
         _uiState.update { it.copy(password = password) }
     }
 
+    fun onConfirmPasswordChange(confirmPassword: String) {
+        _uiState.update { it.copy(confirmPassword = confirmPassword) }
+    }
+
     private fun sendEvent(event: RegisterEvent) {
         viewModelScope.launch {
             _eventChannel.send(event)
@@ -63,18 +68,26 @@ class RegisterViewModel @Inject constructor(
 
         if(currentState.email.isBlank()) {
             sendEvent(RegisterEvent.ShowError("Email is required."))
+            return
         }
 
         if(!isValidEmail(currentState.email)) {
             sendEvent(RegisterEvent.ShowError("Email is invalid"))
+            return
         }
 
         if (currentState.password.isBlank()) {
             sendEvent(RegisterEvent.ShowError("Password is required."))
+            return
         }
 
         if (currentState.password.length < 6) {
             sendEvent(RegisterEvent.ShowError("Password must be at least 6 characters"))
+            return
+        }
+
+        if (currentState.confirmPassword != currentState.password) {
+            sendEvent(RegisterEvent.ShowError("Password is not match"))
             return
         }
 

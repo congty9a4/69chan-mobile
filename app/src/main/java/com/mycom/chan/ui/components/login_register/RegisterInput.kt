@@ -23,9 +23,11 @@ fun RegisterInput(
     username: String,
     email: String,
     password: String,
+    confirmPassword: String,
     onUsernameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit
 ) {
     Column (
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -74,7 +76,11 @@ fun RegisterInput(
                 value = password,
                 onValueChange = onPasswordChange
             )
-            InputField(label = "Confirm Password", placeholder = "Making sure you enter it right!", isPassword = true)
+            InputField(label = "Confirm Password",
+                placeholder = "Making sure you enter it right!",
+                isPassword = true,
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange)
         }
     }
 

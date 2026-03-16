@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,7 +66,7 @@ fun Register(
             when (event) {
                 is RegisterEvent.RegisterSuccess-> {
                     snackbarHostState.showSnackbar(
-                        message = "Login Successfully"
+                        message = "Register Successfully"
                     )
                     onRegisterSuccess()
                 }
@@ -122,15 +124,24 @@ fun Register(
                     username = uiState.username,
                     email = uiState.email,
                     password = uiState.password,
+                    confirmPassword = uiState.confirmPassword,
                     onUsernameChange = {viewModel.onUsernameChange(it)},
                     onEmailChange = {viewModel.onEmailChange(it)},
-                    onPasswordChange = {viewModel.onPasswordChange(it)}
+                    onPasswordChange = {viewModel.onPasswordChange(it)},
+                    onConfirmPasswordChange = {viewModel.onConfirmPasswordChange(it)}
                 )
                 RegisterButton(
                     isLoading = uiState.isLoading,
                     onLoginClick = onNavigateToLogin,
                     onRegisterClick = {viewModel.register()}
                 )
+                
+                // Snackbar for showing errors and success messages
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    Snackbar(
+                        snackbarData = data
+                    )
+                }
             }
         }
         }
