@@ -28,7 +28,7 @@
 
         <!-- Account Authenticator Service -->
         <service
-            android:name=".data.local.AuthenticatorService"
+            android:name=".data.local.auth.AuthenticatorService"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />

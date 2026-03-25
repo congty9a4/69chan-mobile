@@ -6,8 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
-import com.mycom.chan.ui.navigation.AppNav
-import com.mycom.chan.ui.theme.ChanTheme
+import com.mycom.chan.presentation.navigation.AppNav
+import com.mycom.chan.presentation.theme.ChanTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 import io.sentry.Sentry

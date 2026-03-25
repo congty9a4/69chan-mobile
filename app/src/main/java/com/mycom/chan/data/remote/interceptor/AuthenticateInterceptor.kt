@@ -24,16 +24,14 @@ class AuthenticateInterceptor @Inject constructor(
         requestBuilder.addHeader("Accept", "application/json")
         requestBuilder.addHeader("Content-Type", "application/json")
 
-        val path = request.url.encodedPath
-        val isAuthEndpoint = path.endsWith("/login") ||
-                path.endsWith("/register") ||
-                path.endsWith("/guest") ||
-                path.endsWith("/refresh-token")
+        val noAuthHeader = request.header("No-Auth")
 
-        if (!isAuthEndpoint) {
+        if (noAuthHeader == "true") {
+            requestBuilder.removeHeader("No-Auth")
+        } else {
             val token = runBlocking { tokenManager.getAccessToken() }
             if (!token.isNullOrBlank()) {
-                requestBuilder.header("Authorization","Bearer ${token}")
+                requestBuilder.header("Authorization","Bearer $token")
             }
         }
 

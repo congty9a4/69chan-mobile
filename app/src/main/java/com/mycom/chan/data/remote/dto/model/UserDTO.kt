@@ -9,7 +9,7 @@ data class UserDTO (
     @SerializedName("username")
     val username: String,
     @SerializedName("fullname")
-    val fullname: String,
+    val fullname: String?,
     @SerializedName("avatar")
-    val avatar: String
+    val avatar: String?
 )

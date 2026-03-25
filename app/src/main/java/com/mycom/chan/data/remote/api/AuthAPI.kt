@@ -6,21 +6,24 @@ import com.mycom.chan.data.remote.dto.request.RefreshRequest
 import com.mycom.chan.data.remote.dto.request.RegisterRequest
 import com.mycom.chan.data.remote.dto.response.AuthResponse
 import com.mycom.chan.data.remote.dto.response.BaseResponse
-import com.mycom.chan.data.remote.dto.response.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Headers
 import retrofit2.http.POST
 
 interface AuthAPI {
+    @Headers("No-Auth: true")
     @POST("auth/guest")
     suspend fun loginAsGuest() : Response<BaseResponse<AuthResponse>>
-    
+
+    @Headers("No-Auth: true")
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest) : Response<BaseResponse<AuthResponse>>
-    
+
+    @Headers("No-Auth: true")
     @POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest) : Response<BaseResponse<RegisterResponse>>
-    
+    suspend fun register(@Body request: RegisterRequest) : Response<BaseResponse<AuthResponse>>
+
     @POST("auth/refresh-token")
     suspend fun refreshToken(@Body request: RefreshRequest) : Response<BaseResponse<AuthResponse>>
 

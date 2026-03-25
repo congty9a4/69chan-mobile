@@ -1,6 +1,7 @@
 package com.mycom.chan.data.remote.dto.response
 
 import com.google.gson.annotations.SerializedName
+import okhttp3.internal.http2.ErrorCode
 import java.time.Instant
 
 data class BaseResponse<T> (
@@ -10,4 +11,8 @@ data class BaseResponse<T> (
     val success: Boolean,
     @SerializedName("timestamp")
     val timestamp: String,
+    @SerializedName("message")
+    val message: String,
+    @SerializedName("status")
+    val errorCode: Int
 )

@@ -34,6 +34,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlin {
         compilerOptions {
@@ -46,6 +47,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.room.compiler.processing.testing)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
