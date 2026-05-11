@@ -3,7 +3,6 @@ package com.mycom.chan.core.network.auth
 import com.mycom.chan.domain.repository.TokenManager
 import com.mycom.chan.domain.repository.TokenAuthenticator
 import com.mycom.chan.domain.repository.TokenRefresher
-import kotlinx.coroutines.runBlocking
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
@@ -21,27 +20,13 @@ class TokenAuthenticatorImple @Inject constructor(
      * if not, simply log out
      * **/
     override fun authenticate(route: Route?, response: Response): Request? {
-        if (responseCount(response) >3 ) return null //no more than 3 retries
-
+        if (responseCount(response) > 3) return null
         val failedToken = response.request.header("Authorization")?.removePrefix("Bearer ")
-        val isRefreshSuccessful = runBlocking {
-            tokenRefresher.refreshToken(failedToken)
-        }
-
-        if (isRefreshSuccessful) {
-            val newToken = runBlocking { tokenManager.getAccessToken() }
-            if (newToken != null) {
-                return response
-                    .request.newBuilder()
-                    .header("Authorization", "Bearer ${newToken}")
-                    .build()
-
-            }
-            else {
-                runBlocking { tokenRefresher.handleRefreshFailure() }
-            }
-        }
-        return null
+        if (!tokenRefresher.refreshTokenBlocking(failedToken)) return null
+        val newToken = tokenManager.getAccessTokenBlocking() ?: return null
+        return response.request.newBuilder()
+            .header("Authorization", "Bearer $newToken")
+            .build()
     }
 
     /**

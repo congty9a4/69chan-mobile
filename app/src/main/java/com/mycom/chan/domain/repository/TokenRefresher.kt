@@ -6,4 +6,5 @@ interface TokenRefresher {
     suspend fun shouldRefreshToken(): Boolean
 
     suspend fun handleRefreshFailure()
+    fun refreshTokenBlocking(failedToken: String?): Boolean
 }

@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,7 +50,7 @@ import com.mycom.chan.presentation.viewmodel.RegisterViewModel
 @Composable
 fun Register(
     viewModel: RegisterViewModel = hiltViewModel(),
-    onRegisterSuccess: () -> Unit = {},
+    onRegisterSuccess: (email: String) -> Unit = {},
     onNavigateToLogin: () -> Unit = {},
     ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -59,10 +62,7 @@ fun Register(
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is RegisterEvent.RegisterSuccess-> {
-                    snackbarHostState.showSnackbar(
-                        message = "Register Successfully"
-                    )
-                    onRegisterSuccess()
+                    onRegisterSuccess(event.email)
                 }
                 is RegisterEvent.ShowError -> {
                     snackbarHostState.showSnackbar(
@@ -86,9 +86,16 @@ fun Register(
                     start = Offset(0f, 0f),
                     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                 )
-            ),
-        contentAlignment = Alignment.Center
+            )
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(animationSpec = tween(400)) + 
@@ -137,6 +144,7 @@ fun Register(
                     )
                 }
             }
+        }
         }
         }
     }

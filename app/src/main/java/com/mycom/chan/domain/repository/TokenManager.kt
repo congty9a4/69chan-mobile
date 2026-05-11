@@ -27,4 +27,10 @@ interface TokenManager {
     //Get user
     suspend fun getUser(): String?
 
+    //Blocking APIs used in interceptor and authenticator
+    fun getAccessTokenBlocking(): String?
+    fun getRefreshTokenBlocking(): String?
+    fun saveAccessTokenBlocking(accessToken: String)
+    fun saveRefreshTokenBlocking(refreshToken: String)
+    fun clearTokenBlocking()
 }

@@ -60,27 +60,32 @@ fun RegisterInput(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            InputField(label = "Username",
+            InputField(
+                label = "Username",
                 placeholder = "How should we call you?",
                 value = username,
                 onValueChange = onUsernameChange
             )
-            InputField(label = "Email",
+            InputField(
+                label = "Email",
                 placeholder = "Drop your email here!",
                 value = email,
                 onValueChange = onEmailChange
             )
-            InputField(label = "Password",
+            InputField(
+                label = "Password",
                 placeholder = "Enter your password.",
                 isPassword = true,
                 value = password,
                 onValueChange = onPasswordChange
             )
-            InputField(label = "Confirm Password",
+            InputField(
+                label = "Confirm Password",
                 placeholder = "Making sure you enter it right!",
                 isPassword = true,
                 value = confirmPassword,
-                onValueChange = onConfirmPasswordChange)
+                onValueChange = onConfirmPasswordChange
+            )
         }
     }
 

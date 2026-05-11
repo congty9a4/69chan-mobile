@@ -10,9 +10,9 @@ data class BaseResponse<T> (
     @SerializedName("success")
     val success: Boolean,
     @SerializedName("timestamp")
-    val timestamp: String,
+    val timestamp: String?,
     @SerializedName("message")
-    val message: String,
+    val message: String? = null,
     @SerializedName("status")
-    val errorCode: Int
+    val errorCode: Int? = null
 )

@@ -23,7 +23,7 @@ data class RegisterState(
 )
 
 sealed interface RegisterEvent  {
-    object RegisterSuccess : RegisterEvent
+    data class RegisterSuccess(val email: String) : RegisterEvent
     data class ShowError(val message: String) : RegisterEvent
 }
 
@@ -93,14 +93,14 @@ class RegisterViewModel @Inject constructor(
 
         performRegister { authRepository.register(currentState.username, currentState.email, currentState.password) }
     }
-    private fun performRegister(registerAction: suspend () -> Result<Boolean>) {
+    private fun performRegister(registerAction: suspend () -> Result<Unit>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             when (val result = registerAction()) {
                 is Result.Success -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    sendEvent(RegisterEvent.RegisterSuccess)
+                    sendEvent(RegisterEvent.RegisterSuccess(_uiState.value.email))
                 }
                 is Result.Error -> {
                     _uiState.update { it.copy(isLoading = false) }

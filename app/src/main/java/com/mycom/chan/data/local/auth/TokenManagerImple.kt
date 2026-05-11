@@ -2,15 +2,13 @@ package com.mycom.chan.data.local.auth
 
 import android.accounts.Account
 import android.accounts.AccountManager
-import android.accounts.OnAccountsUpdateListener
 import android.content.Context
 import com.mycom.chan.domain.repository.TokenManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,8 +25,18 @@ class TokenManagerImple @Inject constructor(
         const val AUTH_TOKEN_TYPE = "Bearer"
     }
 
+    private val _accessTokenFlow = MutableStateFlow<String?>(null)
     private val accountManager: AccountManager = AccountManager.get(context)
+    @Volatile private var cachedRefreshToken: String? = null
 
+    init {
+        // Load initial state from AccountManager (sync, ok ở init)
+        _accessTokenFlow.value = readAccessTokenFromAccountManager()
+    }
+    private fun readAccessTokenFromAccountManager(): String? {
+        val account = accountManager.getAccountsByType(ACCOUNT_TYPE).firstOrNull() ?: return null
+        return accountManager.peekAuthToken(account, AUTH_TOKEN_TYPE)
+    }
     /**
      * find first (firstornull) account in android's account manager that has com.mycom.chan type
      **/
@@ -54,56 +62,30 @@ class TokenManagerImple @Inject constructor(
     Token must have tagged as "Bearer"
      **/
     override suspend fun saveAccessToken(accessToken: String): Unit = withContext(Dispatchers.IO) {
-        val account = getCurrentAccount() ?: createAccount("69chan-user")
-        accountManager.invalidateAuthToken(ACCOUNT_TYPE, accessToken)
-        accountManager.setAuthToken(account, AUTH_TOKEN_TYPE, accessToken)
+        saveAccessTokenBlocking(accessToken)
     }
     /**
      * save refresh token into user's data
      **/
     override suspend fun saveRefreshToken(refreshToken: String) {
-        withContext(Dispatchers.IO) {
-            getCurrentAccount()?.let { account ->
-                accountManager.setUserData(account, REFRESH_TOKEN, refreshToken)
-            }
-        }
+        saveRefreshTokenBlocking(refreshToken)
     }
 
     /**
      * get access token, return null if no account founded
      **/
     override suspend fun getAccessToken(): String? = withContext(Dispatchers.IO) {
-        val account = getCurrentAccount() ?: return@withContext null
-        accountManager.peekAuthToken(account, ACCOUNT_TYPE)
+        _accessTokenFlow.value
     }
 
     /**
      * get refresh token, return null if no account founded
      **/
     override suspend fun getRefreshToken(): String? = withContext(Dispatchers.IO) {
-        val account = getCurrentAccount() ?: return@withContext null
-        accountManager.getUserData(account, REFRESH_TOKEN)
+        getRefreshTokenBlocking()
     }
 
-    /**
-     * whenever account had a change (add,update,add,delete), OnAccountUpdateListener will
-     tell (callback, asynch) us when that happen
-     * and when that happened, we create a coroutine to get access token from our func. After that,
-     we use trySend to push it into the flow so UI can know
-     * after all of that, we call accountManager to "register" an actual listener and close it when we close the app
-     **/
-    override suspend fun observeAccessToken(): Flow<String?> = callbackFlow {
-        val listener = OnAccountsUpdateListener { accounts ->
-            launch {
-                val accessToken = getAccessToken()
-                trySend(accessToken)
-            }
-        }
-        accountManager.addOnAccountsUpdatedListener(listener, null, true)
-        awaitClose {
-            accountManager.removeOnAccountsUpdatedListener(listener)
-        }
-    }
+    override suspend fun observeAccessToken(): Flow<String?> = _accessTokenFlow.asStateFlow()
 
     /**
      * We have to invalidate the token of the account before removing it
@@ -113,30 +95,19 @@ class TokenManagerImple @Inject constructor(
      * Then we use removeAccountExplicitly to remove the account.
      **/
     override suspend fun clearToken() = withContext(Dispatchers.IO) {
-        val account = getCurrentAccount() ?: return@withContext
-        runCatching { //crashing avoidance
-            accountManager.peekAuthToken(account, AUTH_TOKEN_TYPE)?.let { token ->
-                accountManager.invalidateAuthToken(ACCOUNT_TYPE, token)
-            }
-            val isRemoved = accountManager.removeAccountExplicitly(account)
-
-            if (!isRemoved) {
-                println("Could not remove account explicitly.")
-            }
-
-        }.onFailure { e ->
-            e.printStackTrace()
-        }
+        clearTokenBlocking()
     }
 
     /**
      * **/
     override suspend fun saveUser(user: String) {
         withContext(Dispatchers.IO) {
-            val account = getCurrentAccount()
-            account?.let {
-                accountManager.setUserData(it, KEY_USER, user)
+            val account = getCurrentAccount() ?: run {
+                val newAccount = Account("69chan-user", ACCOUNT_TYPE)
+                accountManager.addAccountExplicitly(newAccount, null, null)
+                newAccount
             }
+            accountManager.setUserData(account, KEY_USER, user)
         }
     }
 
@@ -147,4 +118,51 @@ class TokenManagerImple @Inject constructor(
         accountManager.getUserData(account, KEY_USER)
     }
 
+    private fun getCurrentAccountSync(): Account? =
+        accountManager.getAccountsByType(ACCOUNT_TYPE).firstOrNull()
+
+    override fun getAccessTokenBlocking(): String? {
+        return _accessTokenFlow.value
+    }
+
+    override fun getRefreshTokenBlocking(): String? {
+        cachedRefreshToken?.let { return it }
+        val account = getCurrentAccountSync() ?: return null
+        return accountManager.getUserData(account, REFRESH_TOKEN)
+            ?.also { cachedRefreshToken = it }
+    }
+
+    override fun saveAccessTokenBlocking(accessToken: String) {
+        // Lấy account hiện tại sync, hoặc tạo mới nếu chưa có
+        val account = getCurrentAccountSync() ?: run {
+            val newAccount = Account("69chan-user", ACCOUNT_TYPE)
+            accountManager.addAccountExplicitly(newAccount, null, null)
+            newAccount
+        }
+        accountManager.invalidateAuthToken(ACCOUNT_TYPE, accessToken)
+        accountManager.setAuthToken(account, AUTH_TOKEN_TYPE, accessToken)
+        _accessTokenFlow.value = accessToken                    // emit cho observer
+    }
+
+    override fun saveRefreshTokenBlocking(refreshToken: String) {
+        val account = getCurrentAccountSync() ?: run {
+            val newAccount = Account("69chan-user", ACCOUNT_TYPE)
+            accountManager.addAccountExplicitly(newAccount, null, null)
+            newAccount
+        }
+        accountManager.setUserData(account, REFRESH_TOKEN, refreshToken)
+        cachedRefreshToken = refreshToken
+    }
+
+    override fun clearTokenBlocking() {
+        val account = getCurrentAccountSync() ?: return
+        runCatching {
+            accountManager.peekAuthToken(account, AUTH_TOKEN_TYPE)?.let { token ->
+                accountManager.invalidateAuthToken(ACCOUNT_TYPE, token)
+            }
+            accountManager.removeAccountExplicitly(account)
+        }
+        _accessTokenFlow.value = null
+        cachedRefreshToken = null
+    }
 }

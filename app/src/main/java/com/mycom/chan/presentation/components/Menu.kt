@@ -1,11 +1,11 @@
 package com.mycom.chan.presentation.components
 
-import android.icu.text.CompactDecimalFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,24 +18,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.mycom.chan.R
-import com.mycom.chan.data.remote.dto.model.UserDTO
+import com.mycom.chan.domain.model.User
 import com.mycom.chan.presentation.viewmodel.AuthViewModel
-import java.util.Locale
+import com.mycom.chan.presentation.viewmodel.LocalAuthViewModel
 
 @Composable
 fun Menu(
-    viewModel: AuthViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = LocalAuthViewModel.current,
+    onNavigateToProfile: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -54,28 +52,33 @@ fun Menu(
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
-        } else if (uiState.isLoggedIn && uiState.currentUser != null) {
-            HeaderTopBar(user = uiState.currentUser)
-            HeaderUserInfo(user = uiState.currentUser)
-            HeaderFollowInfo()
         } else {
-            // Trạng thái chưa đăng nhập
-            Text(
-                text = "Vui lòng đăng nhập",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
+            val currentUser = uiState.currentUser
+            if (uiState.isLoggedIn && currentUser != null) {
+                HeaderTopBar(
+                    avatarUrl = currentUser.avatarUrl,
+                    onNavigateToProfile = onNavigateToProfile)
+                HeaderUserInfo(user = currentUser)
+            } else {
+                Text(
+                    text = "Vui lòng đăng nhập",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
         }
         
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
         
         // Menu items
-        MenuNavItem(R.drawable.message, "message", "Tin nhắn")
-        MenuNavItem(R.drawable.message, "message", "Thông báo")
-        MenuNavItem(R.drawable.message, "message", "Đã lưu")
-        MenuNavItem(R.drawable.message, "message", "Cài đặt")
-        MenuNavItem(R.drawable.message, "message", "Trợ giúp")
-        
+        MenuNavItem(R.drawable.message, "message", "Message")
+        MenuNavItem(R.drawable.notification, "message", "Notifications")
+        MenuNavItem(R.drawable.saved, "message", "Saved Post")
+        MenuNavItem(R.drawable.setting, "message", "Settings")
+        MenuNavItem(R.drawable.customer_service, "message", "Customer Service")
+
+        Spacer(Modifier.weight(1f))
+
         // Nút Logout nếu đã đăng nhập
         if (uiState.isLoggedIn) {
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -92,88 +95,45 @@ fun Menu(
     }
 }
 
-@Composable
-@Preview
-fun MenuPreview() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        HeaderTopBar(user = null)
-        HeaderUserInfo(user = null)
-        HeaderFollowInfo()
-        MenuNavItem(R.drawable.message, "message", "Message")
-    }
-}
 
 @Composable
-fun HeaderTopBar(user: UserDTO?) {
+fun HeaderTopBar(
+    avatarUrl: String?,
+    onNavigateToProfile: () -> Unit = {}
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Avatar chính của user
-        Avatar(modifier = Modifier.size(48.dp))
-        // Icon settings hoặc notification
-        Avatar(modifier = Modifier.size(24.dp))
+        Avatar(
+            imageUrl = avatarUrl,
+            modifier = Modifier.size(48.dp),
+            isEditable = false,
+            onClick = onNavigateToProfile
+        )
     }
 }
 
 @Composable
-fun HeaderUserInfo(user: UserDTO?) {
+fun HeaderUserInfo(user: User?) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = user?.fullname ?: user?.username ?: "Unknown",
+            text = user?.fullName ?: user?.userName ?: "Unknown",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "@${user?.username ?: "guest"}",
+            text = "@${user?.userName ?: "guest"}",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-@Composable
-fun HeaderFollowInfo() {
-    Row (
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround
-    ){
-        FollowStatItem("Following", 1000000)
-        FollowStatItem("Followers",12345678)
-    }
-}
-
-@Composable
-fun FollowStatItem (label: String, count: Int) {
-    val format = remember {
-        CompactDecimalFormat.getInstance(
-            Locale.US,
-            CompactDecimalFormat.CompactStyle.SHORT
-        )
-    }
-    Row (modifier = Modifier
-        .padding(vertical = 2.dp)
-    ){
-        Text(
-            text = "${label}: "
-        )
-        Text(
-            text = format.format(count)
-        )
-    }
-}
 
 @Composable
 fun MenuNavItem(

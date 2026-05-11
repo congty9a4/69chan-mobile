@@ -9,7 +9,7 @@ fun ContentDTO.toPost(): Post {
         tags = this.tags,
         caption = this.caption,
         medias = this.media.map { it.toMedia() },
-        user = this.userDTO,
+        user = this.userDTO.toUser(),
         scope = this.scope,
         likes = this.likes,
         comment = this.comments,

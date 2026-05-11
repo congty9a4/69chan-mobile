@@ -20,6 +20,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"https://six9chan-2.onrender.com/api/\"")
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1"
+            )
+        }
     }
 
     buildTypes {
@@ -43,13 +55,25 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
+configurations.all {
+    exclude(group = "com.google.auto.value", module = "auto-value")
+}
+
 dependencies {
-    implementation(libs.androidx.room.compiler.processing.testing)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.ui.text)
+    implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.material3)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    
+
+    testImplementation(libs.mockk.android)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

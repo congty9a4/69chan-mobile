@@ -3,14 +3,16 @@ package com.mycom.chan.core.network.auth
 import com.mycom.chan.data.remote.api.AuthAPI
 import com.mycom.chan.domain.repository.TokenManager
 import com.mycom.chan.data.remote.dto.request.RefreshRequest
+import com.mycom.chan.di.AuthClient
 import com.mycom.chan.domain.repository.TokenRefresher
+import io.sentry.Sentry
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 class TokenRefresherImple @Inject constructor(
     private val tokenManager: TokenManager,
-    private val authApi: AuthAPI
+    @AuthClient private val authApi: AuthAPI
 ) : TokenRefresher {
     private val refreshMutex = Mutex() //making sure only one fresher at a time
     /**
@@ -66,5 +68,56 @@ class TokenRefresherImple @Inject constructor(
      * Clear account when refreshing failed, which will log the user out and require the user to log back in to continue **/
     override suspend fun handleRefreshFailure() {
         tokenManager.clearToken()
+    }
+
+    private val refreshLock = Any()
+
+    override fun refreshTokenBlocking(failedToken: String?): Boolean = synchronized(refreshLock) {
+        // Nếu thread khác đã refresh xong, access token hiện tại sẽ KHÁC failedToken.
+        // Coi như refresh thành công, dùng luôn token mới mà không gọi API.
+        val current = tokenManager.getAccessTokenBlocking()
+        if (current != null && current != failedToken) {
+            return@synchronized true
+        }
+
+        // Lấy refresh token từ storage (sync, in-memory cache)
+        val refreshToken = tokenManager.getRefreshTokenBlocking()
+        if (refreshToken.isNullOrBlank()) {
+            // Không còn refresh token → user phải login lại
+            tokenManager.clearTokenBlocking()
+            return@synchronized false
+        }
+
+        //Gọi API refresh ĐỒNG BỘ qua Call<T>.execute()
+        return@synchronized try {
+            val response = authApi.refreshTokenSync(RefreshRequest(refreshToken)).execute()
+            val body = response.body()
+
+            when {
+                // Refresh thành công
+                response.isSuccessful && body?.success == true && body.body != null -> {
+                    val newAuth = body.body
+                    tokenManager.saveAccessTokenBlocking(newAuth.token)
+                    if (newAuth.refreshToken.isNotBlank()) {
+                        tokenManager.saveRefreshTokenBlocking(newAuth.refreshToken)
+                    }
+                    true
+                }
+
+                // Refresh token cũng hết hạn (server từ chối) → logout
+                response.code() == 401 || response.code() == 403 -> {
+                    tokenManager.clearTokenBlocking()
+                    false
+                }
+
+                // Server error tạm thời (5xx, network glitch) — KHÔNG clear token,
+                // user retry sẽ được
+                else -> false
+            }
+        } catch (e: Exception) {
+            // Network exception (timeout, no internet, etc.) — KHÔNG clear token
+            Sentry.captureException(e)
+            false
+        }
     }
 }

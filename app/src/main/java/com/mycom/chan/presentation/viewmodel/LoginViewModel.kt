@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.mycom.chan.data.remote.dto.model.Result
+import com.mycom.chan.domain.model.Authentication
+
 data class LoginState(
     val email: String = "",
     val password: String = "",
@@ -83,7 +85,7 @@ class LoginViewModel @Inject constructor(
 
         performLogin { authRepository.login(currentState.email, currentState.password) }
     }
-    private fun performLogin(loginAction: suspend () -> Result<Boolean>) {
+    private fun performLogin(loginAction: suspend () -> Result<Authentication>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 

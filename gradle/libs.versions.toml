@@ -6,6 +6,7 @@ desugar_jdk_libs = "2.0.4"
 gson = "2.13.2"
 hilt = "2.51.1"
 hiltNavigationCompose = "1.2.0"
+mockkAndroid = "1.13.11"
 navigationCompose = "2.8.5"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
@@ -21,6 +22,13 @@ retrofit = "2.11.0"
 sentryAndroid = "8.29.0"
 sentryCompose = "8.29.0"
 roomCompilerProcessingTesting = "2.8.4"
+runtime = "1.10.5"
+uiText = "1.10.6"
+uiTextVersion = "1.11.0"
+ui = "1.11.0"
+foundation = "1.11.0"
+firebaseCrashlyticsBuildtools = "3.0.7"
+material3 = "1.4.0"
 #uiGraphics = "1.10.0"
 
 
@@ -50,11 +58,19 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 library = { module = "com.company.v2x:library", version.ref = "library" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 sentry-android = { module = "io.sentry:sentry-android", version.ref = "sentryAndroid" }
 sentry-compose = { module = "io.sentry:sentry-compose", version.ref = "sentryCompose" }
 retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 androidx-room-compiler-processing-testing = { group = "androidx.room", name = "room-compiler-processing-testing", version.ref = "roomCompilerProcessingTesting" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiTextVersion" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
