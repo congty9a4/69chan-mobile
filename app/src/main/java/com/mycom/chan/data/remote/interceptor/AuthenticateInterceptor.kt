@@ -19,25 +19,31 @@ class AuthenticateInterceptor @Inject constructor(
      **/
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val requestBuilder = request.newBuilder()
+        val builder = request.newBuilder()
+            .addHeader("Accept", "application/json")
 
-        requestBuilder.addHeader("Accept", "application/json")
-        requestBuilder.addHeader("Content-Type", "application/json")
-
-        val path = request.url.encodedPath
-        val isAuthEndpoint = path.endsWith("/login") ||
-                path.endsWith("/register") ||
-                path.endsWith("/guest") ||
-                path.endsWith("/refresh-token")
-
-        if (!isAuthEndpoint) {
-            val token = runBlocking { tokenManager.getAccessToken() }
-            if (!token.isNullOrBlank()) {
-                requestBuilder.header("Authorization","Bearer ${token}")
-            }
+        var sentToken = false
+        if (request.header("No-Auth") == "true") {
+            builder.removeHeader("No-Auth")
+        } else {
+            tokenManager.getAccessTokenBlocking()
+                ?.takeIf { it.isNotBlank() }
+                ?.let {
+                    builder.header("Authorization", "Bearer $it")
+                    sentToken = true
+                }
         }
 
-        return chain.proceed(requestBuilder.build())
+        val response = chain.proceed(builder.build())
+
+        // Backend returns 403 (not 401) when JWT is invalid/expired.
+        // OkHttp Authenticator only fires on 401, so 403 never triggers refresh.
+        // Clear the local token here so the app can redirect back to Login.
+        if (response.code == 403 && sentToken) {
+            tokenManager.clearTokenBlocking()
+        }
+
+        return response
     }
 
 }

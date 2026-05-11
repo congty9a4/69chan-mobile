@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 import com.mycom.chan.data.remote.dto.model.UserDTO
 
 data class AuthResponse(
-    @SerializedName("token")
+    @SerializedName("access_token")
     val token: String,
     @SerializedName("user")
     val user: UserDTO,
