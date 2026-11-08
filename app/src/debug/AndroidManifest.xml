@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug builds only (this file is not merged into release).
+             Shows every screen with sample data: no account, no network.
+             Has its own launcher icon, "69chan previews". See PreviewActivity.kt for the adb command. -->
+        <activity
+            android:name="com.mycom.chan.preview.PreviewActivity"
+            android:exported="true"
+            android:label="69chan previews"
+            android:taskAffinity="com.mycom.chan.preview"
+            android:theme="@style/Theme._chan"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
