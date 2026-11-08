@@ -17,7 +17,6 @@ import com.mycom.chan.presentation.viewmodel.AuthViewModel
 import com.mycom.chan.presentation.viewmodel.LocalAuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
-import io.sentry.Sentry
 
 @HiltAndroidApp
 class Main : Application()
@@ -27,13 +26,6 @@ class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        findViewById<android.view.View>(android.R.id.content).viewTreeObserver.addOnGlobalLayoutListener {
-            try {
-                throw Exception("This app uses Sentry! :)")
-            } catch (e: Exception) {
-                Sentry.captureException(e)
-            }
-        }
         enableEdgeToEdge()
         setContent {
             ChanTheme {

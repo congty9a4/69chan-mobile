@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <!-- Debug builds report to Sentry as "debug", so emulator and dev-phone errors
+             do not show up as "production" (the default when no environment is set). -->
+        <meta-data android:name="io.sentry.environment" android:value="debug" />
+
         <!-- Debug builds only (this file is not merged into release).
              Shows every screen with sample data: no account, no network.
              Has its own launcher icon, "69chan previews". See PreviewActivity.kt for the adb command. -->
