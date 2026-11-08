@@ -1,10 +1,8 @@
 package com.mycom.chan.presentation.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,151 +12,141 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import com.mycom.chan.R
 import com.mycom.chan.domain.model.User
-import com.mycom.chan.presentation.viewmodel.AuthViewModel
-import com.mycom.chan.presentation.viewmodel.LocalAuthViewModel
+import com.mycom.chan.presentation.theme.AvatarSize
+import com.mycom.chan.presentation.theme.IconSize
+import com.mycom.chan.presentation.theme.Spacing
+import com.mycom.chan.presentation.viewmodel.AuthState
 
 @Composable
 fun Menu(
-    viewModel: AuthViewModel = LocalAuthViewModel.current,
+    authState: AuthState,
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToMessages: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(vertical = Spacing.md)
     ) {
-        // Header với thông tin user
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            }
-        } else {
-            val currentUser = uiState.currentUser
-            if (uiState.isLoggedIn && currentUser != null) {
-                HeaderTopBar(
-                    avatarUrl = currentUser.avatarUrl,
-                    onNavigateToProfile = onNavigateToProfile)
-                HeaderUserInfo(user = currentUser)
-            } else {
-                Text(
-                    text = "Vui lòng đăng nhập",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(vertical = 16.dp)
+        // Header with the current user
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.xl, vertical = Spacing.md)
+        ) {
+            val currentUser = authState.currentUser
+            when {
+                authState.isLoading -> CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(IconSize.medium)
+                        .align(Alignment.Center)
+                )
+
+                authState.isLoggedIn && currentUser != null -> MenuHeader(
+                    user = currentUser,
+                    onNavigateToProfile = onNavigateToProfile
+                )
+
+                else -> Text(
+                    text = "Please log in",
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
-        
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-        
-        // Menu items
-        MenuNavItem(R.drawable.message, "message", "Message")
-        MenuNavItem(R.drawable.notification, "message", "Notifications")
-        MenuNavItem(R.drawable.saved, "message", "Saved Post")
-        MenuNavItem(R.drawable.setting, "message", "Settings")
-        MenuNavItem(R.drawable.customer_service, "message", "Customer Service")
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
+
+        MenuNavItem(R.drawable.message, "Messages", onClick = onNavigateToMessages)
+        MenuNavItem(R.drawable.notification, "Notifications", onClick = onNavigateToNotifications)
+        // No screens yet for these three: labelled "Soon" so they do not look broken
+        MenuNavItem(R.drawable.saved, "Saved posts", comingSoon = true)
+        MenuNavItem(R.drawable.setting, "Settings", comingSoon = true)
+        MenuNavItem(R.drawable.customer_service, "Customer service", comingSoon = true)
 
         Spacer(Modifier.weight(1f))
 
-        // Nút Logout nếu đã đăng nhập
-        if (uiState.isLoggedIn) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        if (authState.isLoggedIn) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.sm))
             MenuNavItem(
-                id = R.drawable.message,
-                description = "logout",
-                name = "Đăng xuất",
-                onClick = {
-                    viewModel.logout()
-                    onLogout()
-                }
+                iconRes = R.drawable.logout,
+                label = "Log out",
+                onClick = onLogout
             )
         }
     }
 }
 
-
 @Composable
-fun HeaderTopBar(
-    avatarUrl: String?,
-    onNavigateToProfile: () -> Unit = {}
+private fun MenuHeader(
+    user: User,
+    onNavigateToProfile: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
         Avatar(
-            imageUrl = avatarUrl,
-            modifier = Modifier.size(48.dp),
-            isEditable = false,
+            imageUrl = user.avatarUrl,
+            modifier = Modifier.size(AvatarSize.large),
+            contentDescription = "Your avatar",
+            onClickLabel = "Open profile",
             onClick = onNavigateToProfile
         )
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
+            Text(
+                text = user.fullName.ifBlank { user.userName },
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "@${user.userName}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
 @Composable
-fun HeaderUserInfo(user: User?) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = user?.fullName ?: user?.userName ?: "Unknown",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "@${user?.userName ?: "guest"}",
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-
-@Composable
-fun MenuNavItem(
-    id: Int,
-    description: String,
-    name: String,
+private fun MenuNavItem(
+    iconRes: Int,
+    label: String,
+    comingSoon: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-            .clickable(onClick = onClick),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id),
-            contentDescription = "${description}-navigation-item",
-            modifier = Modifier.size(30.dp)
-        )
-        Text(
-            text = name,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    NavigationDrawerItem(
+        label = { Text(label) },
+        icon = {
+            Icon(
+                imageVector = ImageVector.vectorResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(IconSize.medium)
+            )
+        },
+        badge = if (comingSoon) {
+            {
+                Text(
+                    text = "Soon",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else null,
+        selected = false,
+        onClick = onClick,
+        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+    )
 }

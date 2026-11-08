@@ -18,6 +18,7 @@ import com.mycom.chan.presentation.components.chat.ChatMessageBar
 import com.mycom.chan.presentation.components.chat.ChatNavigationBar
 import com.mycom.chan.presentation.uimodel.MessagePosition
 import com.mycom.chan.presentation.uimodel.MessageUiModel
+import com.mycom.chan.presentation.viewmodel.ChatState
 import com.mycom.chan.presentation.viewmodel.ChatViewModel
 
 @Composable
@@ -35,18 +36,39 @@ fun ChatPage(
     LaunchedEffect(conversationId) {
         viewModel.init(conversationId, currentUserId, receiverId)
     }
+    ChatContent(
+        receiverName = receiverName,
+        receiverAvatar = receiverAvatar,
+        uiState = uiState,
+        onBack = onNavigateToChatList,
+        onInputChange = viewModel::onInputChange,
+        onSend = viewModel::sendMessage
+    )
+}
+
+/** Conversation UI without the ViewModel, so the debug preview screen can show it with sample data. */
+@Composable
+internal fun ChatContent(
+    receiverName: String,
+    receiverAvatar: String?,
+    uiState: ChatState,
+    onBack: () -> Unit,
+    onInputChange: (String) -> Unit,
+    onSend: () -> Unit
+) {
     Scaffold(
         topBar = {
             ChatNavigationBar(
                 senderName = receiverName,
                 senderAvatar = receiverAvatar,
-                onNavigateToChatList = onNavigateToChatList
+                onNavigateToChatList = onBack
             )
         },
         bottomBar = {
-            ChatMessageBar(text = uiState.inputText,
-                onTextChange = viewModel::onInputChange,
-                onSendMessage = viewModel::sendMessage
+            ChatMessageBar(
+                text = uiState.inputText,
+                onTextChange = onInputChange,
+                onSendMessage = onSend
             )
         }
     ) { innerPadding ->

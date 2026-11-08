@@ -1,31 +1,25 @@
 package com.mycom.chan.presentation.components.create_post
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import com.mycom.chan.domain.model.User
+import com.mycom.chan.presentation.theme.Spacing
 
 @Composable
-fun TopCreatePostBar (
+fun TopCreatePostBar(
     onCancelPost: () -> Unit,
     onCreatePost: () -> Unit,
     isPostAble: Boolean,
@@ -33,41 +27,39 @@ fun TopCreatePostBar (
 ) {
     Row(
         modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.sm, vertical = Spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
-        TextButton(
-            onClick = onCancelPost
+        TextButton(onClick = onCancelPost) {
+            Text("Cancel")
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .semantics(mergeDescendants = true) { heading() },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Cancel",
-                color = Color(0xff4C9EEB),
-                textDecoration = TextDecoration.Underline,
-                fontSize = 15.sp
+            Text(
+                text = "New post",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "@${user.userName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        Text(
-            text = buildAnnotatedString {
-                append("New post of ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(user.userName)
-                }
-            },
-            fontSize = 15.sp
-        )
+        // Default colors: the disabled state is greyed out by Material,
+        // instead of white text on a pale blue that could barely be read
         Button(
             onClick = onCreatePost,
-            colors = ButtonDefaults.buttonColors(
-                disabledContainerColor=Color(0xffB9DCF7),
-                containerColor = Color(0xff4C9EEB)
-            ),
             enabled = isPostAble
-            ) {
-            Text("Post",
-                fontSize = 15.sp,
-                color = Color.White
-            )
+        ) {
+            Text("Post")
         }
     }
 }

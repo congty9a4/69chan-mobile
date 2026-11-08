@@ -1,22 +1,17 @@
 package com.mycom.chan.presentation.components.login_register
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.mycom.chan.R
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import com.mycom.chan.presentation.components.InputField
+import com.mycom.chan.presentation.theme.Spacing
 
 @Composable
 fun RegisterInput(
@@ -27,67 +22,57 @@ fun RegisterInput(
     onUsernameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit
+    onConfirmPasswordChange: (String) -> Unit,
+    onSubmit: () -> Unit = {}
 ) {
-    Column (
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+    // Full width of the card instead of a fixed 350dp, which overflowed on small phones
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(350.dp)
-    ){
-        Image(
-            imageVector = ImageVector.vectorResource(R.drawable.logo),
-            contentDescription = "login-screen-logo,",
-            modifier = Modifier.size(34.dp)
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        AuthHeader(
+            title = "Sign up",
+            subtitle = "Create an account to continue!"
         )
-        Column (
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "SIGN UP",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Create an account to continue!",
-                fontSize = 12.sp
-            )
-        }
 
-        Column (
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             InputField(
                 label = "Username",
                 placeholder = "How should we call you?",
                 value = username,
-                onValueChange = onUsernameChange
+                onValueChange = onUsernameChange,
+                autofillType = ContentType.NewUsername
             )
             InputField(
                 label = "Email",
-                placeholder = "Drop your email here!",
+                placeholder = "you@example.com",
                 value = email,
-                onValueChange = onEmailChange
+                onValueChange = onEmailChange,
+                keyboardType = KeyboardType.Email,
+                autofillType = ContentType.EmailAddress
             )
             InputField(
                 label = "Password",
-                placeholder = "Enter your password.",
+                placeholder = "Enter your password",
                 isPassword = true,
                 value = password,
-                onValueChange = onPasswordChange
+                onValueChange = onPasswordChange,
+                autofillType = ContentType.NewPassword
             )
             InputField(
-                label = "Confirm Password",
-                placeholder = "Making sure you enter it right!",
+                label = "Confirm password",
+                placeholder = "Type it once more",
                 isPassword = true,
                 value = confirmPassword,
-                onValueChange = onConfirmPasswordChange
+                onValueChange = onConfirmPasswordChange,
+                imeAction = ImeAction.Done,
+                keyboardActions = KeyboardActions(onDone = { onSubmit() }),
+                autofillType = ContentType.NewPassword
             )
         }
     }
-
 }
-

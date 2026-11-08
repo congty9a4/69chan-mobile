@@ -1,41 +1,40 @@
 package com.mycom.chan.presentation.components.navbar
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.mycom.chan.R
+import com.mycom.chan.presentation.theme.IconSize
 
+/** Feed top bar: menu button on the left, logo in the middle. Handles the status bar inset. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopNavBar (onMenuClick:() -> Unit) {
-    Box(
-        modifier = Modifier.run {
-            fillMaxWidth()
-                .height(90.dp)
-                .padding(vertical = 2.dp, horizontal = 10.dp)
-                .statusBarsPadding()
-
+fun TopNavBar(onMenuClick: () -> Unit) {
+    CenterAlignedTopAppBar(
+        navigationIcon = {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.menu),
+                    contentDescription = "Open menu",
+                    modifier = Modifier.size(IconSize.medium)
+                )
+            }
+        },
+        title = {
+            // The logo is not a button, so it is a plain image rather than an IconButton
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.logo),
+                contentDescription = "69chan",
+                modifier = Modifier.size(32.dp)
+            )
         }
-    ) {
-        NavigationButton(
-            R.drawable.menu,
-            contentDescription = "menu",
-            Modifier.size(30.dp).align(Alignment.CenterStart),
-            30,onMenuClick
-        )
-        NavigationButton(
-            R.drawable.logo,
-            contentDescription = "logo",
-            Modifier.size(30.dp).align(Alignment.Center),
-            30, {}
-        )
-
-    }
+    )
 }
-

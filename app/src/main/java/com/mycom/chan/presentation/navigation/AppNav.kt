@@ -90,7 +90,10 @@ fun AppNav(
             Login(
                 onLoginSuccess = {},
                 onNavigateToRegister = { navController.navigate(Screen.Register.route) },
-                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
+                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) },
+                onNavigateToVerifyEmail = { email ->
+                    navController.navigate(Screen.VerifyEmail.createRoute(email))
+                }
             )
         }
 

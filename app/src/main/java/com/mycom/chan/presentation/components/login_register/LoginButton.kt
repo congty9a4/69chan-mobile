@@ -1,19 +1,15 @@
 package com.mycom.chan.presentation.components.login_register
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,10 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.mycom.chan.R
+import com.mycom.chan.presentation.theme.IconSize
+import com.mycom.chan.presentation.theme.Spacing
 
 @Composable
 fun LoginButton(
@@ -34,84 +30,63 @@ fun LoginButton(
     onFacebookClick: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
-    Column (
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
+        AuthPrimaryButton(
+            text = "Log in",
             onClick = onLoginClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            enabled = !isLoading,
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D61E7)
-            ),
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = "LOGIN",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        Text(
-            text = "Or login with",
-            fontSize = 10.sp,
-            color = Color(0xff6C7278)
+            isLoading = isLoading
         )
-        Row (
-            modifier = Modifier.height(48.dp).fillMaxWidth(),
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            OtherLoginButton(R.drawable.google_icon, onGoogleClick, "google")
-            OtherLoginButton(R.drawable.facebook_icon, onFacebookClick, "facebook")
+            HorizontalDivider(modifier = Modifier.weight(1f))
+            Text(
+                text = "or log in with",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f))
         }
-        Row (
-            modifier = Modifier.clickable(onClick = onSignUpClick),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.lg),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "Don’t have an account?",
-                color = Color.Gray,
-                fontSize = 12.sp
-            )
-            Text(
-                text = "Sign up.",
-                color = Color(0xFF2267ee),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            OtherLoginButton(R.drawable.google_icon, onGoogleClick, "Google")
+            OtherLoginButton(R.drawable.facebook_icon, onFacebookClick, "Facebook")
         }
+
+        AuthSwitchPrompt(
+            question = "Don't have an account?",
+            actionLabel = "Sign up",
+            onAction = onSignUpClick
+        )
     }
 }
 
 @Composable
-fun OtherLoginButton (
+fun OtherLoginButton(
     id: Int,
-    onclick:() -> Unit,
-    description: String
+    onclick: () -> Unit,
+    providerName: String
 ) {
-    IconButton(onclick,
-        colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = Color.White,
-            contentColor = Color.Unspecified
-        )) {
+    OutlinedIconButton(
+        onClick = onclick,
+        modifier = Modifier.size(48.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        // Brand logos keep their own colors
         Icon(
             imageVector = ImageVector.vectorResource(id),
-            modifier = Modifier.size(18.dp),
-            contentDescription = "login-with-${description}",
-            tint = Color.Unspecified
-            )
+            contentDescription = "Log in with $providerName",
+            tint = Color.Unspecified,
+            modifier = Modifier.size(IconSize.small)
+        )
     }
 }

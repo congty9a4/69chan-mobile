@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark window background while the app starts, so dark mode has no white flash
+         before Compose draws the first frame. -->
+    <style name="Theme._chan" parent="android:Theme.Material.NoActionBar" />
+</resources>

@@ -32,18 +32,44 @@ fun ChatList(
     val currentUserId = authState.currentUser?.id ?: ""
     val chatItems = viewModel.chatItems(currentUserId)
 
-    Scaffold (
+    ChatListContent(
+        isLoading = uiState.isLoading,
+        filter = uiState.filter,
+        chatItems = chatItems,
+        onBack = onBackToMainPage,
+        onFilterSelected = viewModel::setFilter,
+        onChatItemClick = { conversationId ->
+            // receiverId = participant khác với currentUser
+            val conv = uiState.conversations.find { it.id == conversationId }
+            val receiverId = conv?.participantIds?.find { it != currentUserId } ?: ""
+            onChatItemClick(conversationId, receiverId)
+        }
+    )
+}
+
+/** Conversation list UI without the ViewModel, so the debug preview screen can show it with sample data. */
+@Composable
+internal fun ChatListContent(
+    isLoading: Boolean,
+    filter: ChatFilter,
+    chatItems: List<ChatListItemUiModel>,
+    onBack: () -> Unit,
+    onFilterSelected: (ChatFilter) -> Unit,
+    onChatItemClick: (conversationId: String) -> Unit,
+    onNewContact: () -> Unit = {}
+) {
+    Scaffold(
         topBar = {
             ChatListNavigationBar(
-                onBackToMainPage = onBackToMainPage,
+                onBackToMainPage = onBack,
                 modifier = Modifier,
-                currentFilter = uiState.filter,
-                onFilterSelected = viewModel::setFilter,
-                onNewContact = {}
+                currentFilter = filter,
+                onFilterSelected = onFilterSelected,
+                onNewContact = onNewContact
             )
         }
-    ) { innerPadding->
-        if (uiState.isLoading) {
+    ) { innerPadding ->
+        if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
@@ -52,12 +78,7 @@ fun ChatList(
             ChatListContainer(
                 modifier = Modifier.padding(innerPadding),
                 chatItems = chatItems,
-                onChatItemClick = { conversationId ->
-                    // receiverId = participant khác với currentUser
-                    val conv = uiState.conversations.find { it.id == conversationId }
-                    val receiverId = conv?.participantIds?.find { it != currentUserId } ?: ""
-                    onChatItemClick(conversationId, receiverId)
-                }
+                onChatItemClick = onChatItemClick
             )
         }
     }

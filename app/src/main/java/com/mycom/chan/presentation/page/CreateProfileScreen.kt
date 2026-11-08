@@ -1,45 +1,36 @@
 package com.mycom.chan.presentation.page
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import com.mycom.chan.presentation.components.BirthdayPickerField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.mycom.chan.presentation.components.BirthdayPickerField
+import com.mycom.chan.presentation.components.login_register.AuthHeader
+import com.mycom.chan.presentation.components.login_register.AuthPrimaryButton
+import com.mycom.chan.presentation.components.login_register.AuthScreenContainer
+import com.mycom.chan.presentation.theme.Spacing
 import com.mycom.chan.presentation.viewmodel.ProfileEvent
 import com.mycom.chan.presentation.viewmodel.ProfileViewModel
 
@@ -53,11 +44,6 @@ fun CreateProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var fullname by remember { mutableStateOf("") }
-    var bio by remember { mutableStateOf("") }
-    var birthday by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-
     LaunchedEffect(Unit) {
         viewModel.eventChannel.collect { event ->
             when (event) {
@@ -68,99 +54,102 @@ fun CreateProfileScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFFc3fbe8), Color(0xFFe8c3fb), Color(0xFFfbe8c3)),
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                )
+    CreateProfileContent(
+        isSaving = uiState.isSaving,
+        snackbarHostState = snackbarHostState,
+        onSubmit = { fullname, bio, birthday, phone ->
+            viewModel.createProfile(
+                userId = userId,
+                fullname = fullname,
+                bio = bio,
+                birthday = birthday,
+                phone = phone
             )
-    ) {
+        },
+        onBackToLogin = onBackToLogin
+    )
+}
+
+/** Profile setup form without the ViewModel, so the debug preview screen can show it. */
+@Composable
+internal fun CreateProfileContent(
+    isSaving: Boolean,
+    snackbarHostState: SnackbarHostState,
+    onSubmit: (fullname: String, bio: String, birthday: String, phone: String) -> Unit,
+    onBackToLogin: () -> Unit
+) {
+    // rememberSaveable: what the user typed survives rotation
+    var fullname by rememberSaveable { mutableStateOf("") }
+    var bio by rememberSaveable { mutableStateOf("") }
+    var birthday by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
+
+    val submit = { onSubmit(fullname, bio, birthday, phone) }
+
+    AuthScreenContainer(snackbarHostState = snackbarHostState) {
+        AuthHeader(
+            title = "Set up your profile",
+            subtitle = "Tell others a bit about yourself",
+            showLogo = false
+        )
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(vertical = 24.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.4f))
-        ) {
-            Column(
+            OutlinedTextField(
+                value = fullname,
+                onValueChange = { fullname = it },
+                label = { Text("Display name") },
+                supportingText = { Text("Required") },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Set up your profile", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Text(
-                    "Tell others a bit about yourself",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = fullname,
-                    onValueChange = { fullname = it },
-                    label = { Text("Display name *") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = bio,
-                    onValueChange = { bio = it },
-                    label = { Text("Bio") },
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                BirthdayPickerField(
-                    value = birthday,
-                    onValueChange = { birthday = it }
-                )
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Phone") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        viewModel.createProfile(
-                            userId = userId,
-                            fullname = fullname,
-                            bio = bio,
-                            birthday = birthday,
-                            phone = phone
-                        )
-                    },
-                    enabled = !uiState.isSaving && fullname.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (uiState.isSaving) {
-                        CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
-                    } else {
-                        Text("Create Profile")
-                    }
-                }
-                SnackbarHost(hostState = snackbarHostState) { data ->
-                    Snackbar(snackbarData = data)
-                }
-                TextButton(onClick = onBackToLogin) {
-                    Text("Back to Login", color = Color.Gray)
-                }
-            }
+                    .semantics { contentType = ContentType.PersonFullName }
+            )
+            OutlinedTextField(
+                value = bio,
+                onValueChange = { bio = it },
+                label = { Text("Bio") },
+                maxLines = 3,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth()
+            )
+            BirthdayPickerField(
+                value = birthday,
+                onValueChange = { birthday = it }
+            )
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Phone") },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    if (!isSaving && fullname.isNotBlank()) submit()
+                }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentType = ContentType.PhoneNumber }
+            )
         }
+        AuthPrimaryButton(
+            text = "Create profile",
+            onClick = submit,
+            enabled = fullname.isNotBlank(),
+            isLoading = isSaving
+        )
+        TextButton(onClick = onBackToLogin) {
+            Text("Back to login")
         }
     }
 }

@@ -1,53 +1,55 @@
 package com.mycom.chan.presentation.components.feed
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.mycom.chan.presentation.theme.Gray
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import com.mycom.chan.presentation.components.Avatar
+import com.mycom.chan.presentation.theme.AvatarSize
 import com.mycom.chan.presentation.theme.Ledger
+import com.mycom.chan.presentation.theme.Spacing
 
 @Composable
-fun PostHeader (
+fun PostHeader(
     avatarUrl: String = "",
     userName: String = "Username",
-    createdAt: String = ""
+    createdAt: String = "",
+    modifier: Modifier = Modifier
 ) {
-    Row (modifier = Modifier
-        .width(280.dp)
-        .padding(
-            vertical = 2.dp,
-            horizontal = 5.dp)) {
-        Avatar(modifier = Modifier.size(48.dp),
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+    ) {
+        Avatar(
             imageUrl = avatarUrl,
-            isEditable = false)
-        Column(modifier = Modifier
-            .width(100.dp)
-            .height(40.dp)
-            .padding(
-                horizontal = 5.dp,
-                vertical = 5.dp)
+            modifier = Modifier.size(AvatarSize.medium)
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xxs)
         ) {
             Text(
                 text = userName,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.titleSmall,
                 fontFamily = Ledger,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = createdAt,
-                color = Gray,
-                fontSize = 8.sp,
-                modifier = Modifier.padding(3.dp)
-            )
+            if (createdAt.isNotBlank()) {
+                Text(
+                    text = createdAt,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
-
 }

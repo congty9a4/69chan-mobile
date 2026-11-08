@@ -2,27 +2,36 @@ package com.mycom.chan.presentation.components.feed
 
 import android.icu.text.CompactDecimalFormat
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import com.mycom.chan.R
+import com.mycom.chan.presentation.theme.ChanTheme
+import com.mycom.chan.presentation.theme.IconSize
+import com.mycom.chan.presentation.theme.Spacing
 import java.util.Locale
 
-enum class ActionType{
+enum class ActionType {
     LIKE,
     COMMENT,
     SHARE,
@@ -31,16 +40,18 @@ enum class ActionType{
 
 @Composable
 fun PostBar(
-    likes: Int=0,
-    comments: Int=0,
-    isLiked: Boolean= false,
-    onLike:() ->Unit = {},
-    onComment: () ->Unit = {}
+    likes: Int = 0,
+    comments: Int = 0,
+    isLiked: Boolean = false,
+    onLike: () -> Unit = {},
+    onComment: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    Row (modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 5.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         ActionButton(ActionType.LIKE, count = likes, isActive = isLiked, onClick = onLike)
         ActionButton(ActionType.COMMENT, count = comments, onClick = onComment)
         ActionButton(ActionType.SHARE)
@@ -49,10 +60,11 @@ fun PostBar(
 }
 
 @Composable
-fun ActionButton(type: ActionType,
-                 count: Int? = null,
-                 isActive: Boolean = false,
-                 onClick: () -> Unit = {}
+fun ActionButton(
+    type: ActionType,
+    count: Int? = null,
+    isActive: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
     val format = remember {
         CompactDecimalFormat.getInstance(
@@ -61,41 +73,51 @@ fun ActionButton(type: ActionType,
         )
     }
 
-    val icon: ImageVector = when (type) {
-        ActionType.LIKE -> {
-            if(isActive) {
-                ImageVector.vectorResource(id = R.drawable.heart_filled)
-            }
-            else ImageVector.vectorResource(id = R.drawable.heart_blank)
-        }
-        ActionType.COMMENT -> {
-            ImageVector.vectorResource(id = R.drawable.comment)
-        }
-        ActionType.SHARE -> {
-            ImageVector.vectorResource(id = R.drawable.shared)
-        }
-        ActionType.BOOKMARK -> {
-            ImageVector.vectorResource(id = R.drawable.bookmark)
-        }
+    val iconRes = when (type) {
+        ActionType.LIKE -> if (isActive) R.drawable.heart_filled else R.drawable.heart_blank
+        ActionType.COMMENT -> R.drawable.comment
+        ActionType.SHARE -> R.drawable.shared
+        ActionType.BOOKMARK -> R.drawable.bookmark
     }
-    Row (verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.clickable(
-            onClick = onClick
-        )) {
-        Icon(imageVector = icon,
-            contentDescription = "action-icon",
-            modifier = Modifier.size(15.dp)
-        )
+    val label = when (type) {
+        ActionType.LIKE -> "Like"
+        ActionType.COMMENT -> "Comment"
+        ActionType.SHARE -> "Share"
+        ActionType.BOOKMARK -> "Save"
+    }
+    val tint = if (type == ActionType.LIKE && isActive) ChanTheme.colors.like else LocalContentColor.current
+    val countText = count?.let { format.format(it) }
 
-        if(count!=null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        modifier = Modifier
+            .clip(MaterialTheme.shapes.small)
+            .clickable(role = Role.Button, onClick = onClick)
+            // At least 48x48dp to tap, even though the icon is only 20dp
+            .minimumInteractiveComponentSize()
+            .padding(horizontal = Spacing.sm)
+            // One announcement per button, e.g. "Like, 12, Liked"
+            .clearAndSetSemantics {
+                contentDescription = if (countText != null) "$label, $countText" else label
+                role = Role.Button
+                if (type == ActionType.LIKE) {
+                    stateDescription = if (isActive) "Liked" else "Not liked"
+                }
+                onClick(label = label) { onClick(); true }
+            }
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(iconRes),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(IconSize.small)
+        )
+        if (countText != null) {
             Text(
-                text = format.format(count  ),
-                fontSize = 12.sp,
-                lineHeight = 12.sp
+                text = countText,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
 }
-
-

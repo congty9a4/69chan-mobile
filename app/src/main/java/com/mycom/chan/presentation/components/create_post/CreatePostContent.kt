@@ -1,18 +1,15 @@
 package com.mycom.chan.presentation.components.create_post
 
 import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -24,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.mycom.chan.domain.model.Media
+import com.mycom.chan.presentation.theme.Spacing
 
 @Composable
 fun CreatePostContent(
@@ -33,48 +30,45 @@ fun CreatePostContent(
     selectedUris: List<Uri>,
     modifier: Modifier = Modifier
 ) {
-    Column (
-        modifier = modifier
-            .padding(10.dp)
-            .fillMaxSize(),
+    Column(
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Borderless field so the whole screen reads as the writing area.
+        // Text and placeholder colors stay the theme defaults, so they work in dark mode too.
         TextField(
             value = text,
             onValueChange = onTextChange,
             modifier = Modifier
                 .weight(1f)
-                .fillMaxSize(),
-            placeholder = { Text("What are you thinking?")},
-            maxLines = 16,
+                .fillMaxWidth(),
+            placeholder = { Text("What are you thinking?") },
+            textStyle = MaterialTheme.typography.bodyLarge,
             colors = TextFieldDefaults.colors(
-                focusedPlaceholderColor = Color.Gray,
-                unfocusedPlaceholderColor = Color.Gray,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             )
         )
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-
-        ) { items(selectedUris) { uri->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
+        if (selectedUris.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                itemsIndexed(selectedUris) { index, uri ->
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = "Selected media ${index + 1} of ${selectedUris.size}",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                    )
+                }
             }
-
         }
     }
 }
