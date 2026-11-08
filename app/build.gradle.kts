@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,16 @@ plugins {
 
     id("io.sentry.android.gradle") version "4.14.1"
 }
+
+val prodBaseUrl = "https://six9chan-2.onrender.com/api/"
+
+// Debug builds can talk to a backend running on this computer instead of the real server:
+// put chan.apiBaseUrl=http://10.0.2.2:8081/api/ in local.properties (10.0.2.2 is the computer,
+// as seen from the emulator). Without that line debug builds use the real server too.
+val localApiBaseUrl: String? = rootProject.file("local.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
+    ?.getProperty("chan.apiBaseUrl")
 
 android {
     namespace = "com.mycom.chan"
@@ -20,7 +32,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "BASE_URL", "\"https://six9chan-2.onrender.com/api/\"")
+        buildConfigField("String", "BASE_URL", "\"$prodBaseUrl\"")
     }
 
     packaging {
@@ -35,6 +47,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"${localApiBaseUrl ?: prodBaseUrl}\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application>
+    <!-- Plain http only to this computer, for chan.apiBaseUrl in local.properties -->
+    <application android:networkSecurityConfig="@xml/network_security_config">
         <!-- Debug builds report to Sentry as "debug", so emulator and dev-phone errors
              do not show up as "production" (the default when no environment is set). -->
         <meta-data android:name="io.sentry.environment" android:value="debug" />
