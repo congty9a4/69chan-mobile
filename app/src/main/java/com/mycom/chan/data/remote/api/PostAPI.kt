@@ -21,12 +21,13 @@ import retrofit2.http.QueryMap
 
 interface PostAPI {
 
-    @GET("feeds/")
+    // No trailing slash: Spring Boot 3 answers "feeds/" with 404
+    @GET("feeds")
     suspend fun getPosts(
         @QueryMap params: Map<String, String>
     ): Response<CursorPageResponse<ContentDTO>>
 
-    @GET("feeds/")
+    @GET("feeds")
     suspend fun getFeeds(
         @Query("limit") limit: Int = 20,
         @Query("after") after: String? = null
@@ -55,8 +56,9 @@ interface PostAPI {
         @Body request: CommentRequest
     ): Response<Unit>
 
+    // The backend maps create to /api/posts/create; plain POST /api/posts does not exist there
     @Multipart
-    @POST("posts")
+    @POST("posts/create")
     suspend fun createPost(
         @Part("post") post: RequestBody,
         @Part files: List<MultipartBody.Part>

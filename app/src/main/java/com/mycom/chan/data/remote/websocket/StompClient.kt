@@ -39,7 +39,15 @@ data class WsSendPayload(
 
 // ----------------- StompClient ----------------
 
-private const val WS_URL = "wss://six9chan-2.onrender.com/ws-69chan"
+/**
+ * Same server as the REST API: https://host/api/ becomes wss://host/ws-69chan/websocket.
+ * The backend registers /ws-69chan with SockJS, so a plain WebSocket (this client) must use
+ * the /websocket sub-path; /ws-69chan itself answers 400.
+ */
+private val WS_URL: String = com.mycom.chan.BuildConfig.BASE_URL
+    .removeSuffix("/")
+    .removeSuffix("/api")
+    .replaceFirst("http", "ws") + "/ws-69chan/websocket"
 private const val TAG = "StompClient"
 
 @Singleton

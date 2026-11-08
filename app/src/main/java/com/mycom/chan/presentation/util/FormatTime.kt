@@ -1,21 +1,27 @@
 package com.mycom.chan.presentation.util
 
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+
+/**
+ * Accepts what the backend sends: "2026-11-08T16:40:39.466+07:00" (with offset),
+ * "2026-11-08T09:40:39Z", or "2026-11-08T16:40:39" (no offset: read as local time).
+ */
+private fun parseInstant(dateTime: String): Instant =
+    runCatching { OffsetDateTime.parse(dateTime).toInstant() }
+        .recoverCatching { Instant.parse(dateTime) }
+        .getOrElse { LocalDateTime.parse(dateTime).atZone(ZoneId.systemDefault()).toInstant() }
+
 fun formatRelativeTime(dateTime: String): String {
     return try {
-        val parsed = java.time.LocalDateTime.parse(dateTime)
-        val now = java.time.LocalDateTime.now()
-        val seconds = java.time.Duration.between(parsed, now).seconds
-        when {
-            seconds < 60        -> "Just now"
-            seconds < 3600      -> "${seconds / 60}m ago"
-            seconds < 86400     -> "${seconds / 3600}h ago"
-            seconds < 86400 * 7 -> "${seconds / 86400}d ago"
-            else                -> dateTime.substring(0, 10)
-        }
+        formatRelativeTime(parseInstant(dateTime).toEpochMilli())
     } catch (e: Exception) {
         dateTime
     }
 }
+
 fun formatRelativeTime(epochMs: Long): String {
     val now = System.currentTimeMillis()
     val diff = now - epochMs
